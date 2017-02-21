@@ -23,6 +23,10 @@ These are made available as attributes of an AtomGroup
      >>> u.atoms.impropers
      <TopologyGroup containing 541 impropers>
 
+
+Guessing bonds
+--------------
+
 If bonding information was not included in the topology file, it is also
 possible to guess the bonds present in the system based upon the distances
 between atoms.
@@ -46,15 +50,46 @@ TopologyGroups
 --------------
 
 Regardless of the type of bond that is being dealt with, the main working
-object for handling them is the TopologyGroup.
+object for handling them is the TopologyGroup.  These are designed to
+slice and add identically to AtomGroups, so you can use them in much the
+same way.
+::
 
-.values method (uses Cython so should be fast)
+     >>> import MDAnalysis as mda
+     >>> from MDAnalysisTests.datafiles import PSF, DCD
+     >>> u = mda.Universe(PSF, DCD)
+     >>> u.atoms.bonds[:10]
+     <TopologyGroup containing 10 bonds>
+     >>> u.atoms.angles[[5, 8, 9]] + u.atoms.angles[[1, 2, 3]]
+     <TopologyGroup containing 6 angles>
+
+
+The values, bond lengths or angle sizes, can be calculated using the ``.values``
+method.  This uses a Cython backend so should be relatively fast.
+Note that for angles, results will be returned in units of radians.
+::
+
+     >>> import MDAnalysis as mda
+     >>> from MDAnalysisTests.datafiles import waterPSF, waterDCD
+     >>> import numpy as np
+     >>> u = mda.Universe(waterPSF, waterDCD)
+     >>> ag = u.select_atoms('type OT')
+     >>> np.rad2deg(ag.angles.values())
+     array([ 104.52003132,  104.52005773,  104.52001203,  104.52000557,
+             104.51993961])
+
+The values method has the ``pbc`` kwarg which will account for periodic
+boundaries when performing these calculations.  This is important when
+the molecules you are analysing may have been 'chopped' and packed into
+the primary unit cell.
 
 
 Selecting bonds
 ---------------
 
-For examples working with a box of ethanol::
+Similar to AtomGroups, TopologyGroups have a ``select_bonds`` method which
+allows for bonds to be selected based on a tuples of their types.
+For example working with a box of ethanol::
 
     >>> import MDAnalysis as mda
     >>> u = mda.Universe('ethanol.gro', guess_bonds=True)
@@ -76,22 +111,15 @@ For example::
      ('C', 'C', 'O'),
      ('H', 'C', 'O')]
 
-There are only C-C-H bonds and no H-C-C bonds.  Selection however is
+There are only ``C-C-H`` bonds and no ``H-C-C`` bonds.  Selection however is
 aware that sometimes types are reversed::
 
     >>> u.angles.select_bonds(('H', 'C', 'C'))  # note reversal of type
     <TopologyGroup containing 7365 Angles>
 
-TopologyGroups can be combined and indexed::
+Many different types can be selected by combining different TopologyGroups
+::
 
     >>> tg = u.angles.select_bonds(('C', 'C', 'O')) + u.angles.select_bonds(('C', 'O', 'H'))
     >>> tg.types()
     [('C', 'O', 'H'), ('C', 'C', 'O')]
-    >>> tg[:100]
-    <TopologyGroup containing 100 Angles>
-
-
-Intersections
--------------
-
-TopologyGroup.atomgroup_intersection method explanation

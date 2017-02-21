@@ -630,7 +630,7 @@ class TopologyGroup(object):
 
         # Strict requires all items in a row to be seen,
         # otherwise any item in a row
-        func = np.all if kwargs.get('strict', False) else np.any
+        func = np.all if strict else np.any
 
         atom_idx = ag.indices
         # Create a list of boolean arrays,

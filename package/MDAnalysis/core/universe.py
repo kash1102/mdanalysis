@@ -149,7 +149,7 @@ class Universe(object):
     topology_format
         Provide the file format of the topology file; ``None`` guesses it from
         the file extension [``None``] Can also pass a subclass of
-        :class:`MDAnalysis.topology.base.TopologyReader` to define a custom
+        :class:`MDAnalysis.topology.base.TopologyReaderBase` to define a custom
         reader to be used on the topology file.
     format
         Provide the file format of the coordinate or trajectory file; ``None``
